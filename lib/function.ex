@@ -315,17 +315,21 @@ defmodule LangChain.Function do
   defp validate_function_and_arity(changeset) do
     function = get_field(changeset, :function)
 
-    if is_function(function) do
-      case Elixir.Function.info(function, :arity) do
-        {:arity, 2} ->
-          changeset
+    case function do
+      _ when is_function(function) ->
+        case Elixir.Function.info(function, :arity) do
+          {:arity, 2} ->
+            changeset
 
-        {:arity, n} ->
-          add_error(changeset, :function, "expected arity of 2 but has arity #{inspect(n)}")
-      end
-    else
+          {:arity, n} ->
+            add_error(changeset, :function, "expected arity of 2 but has arity #{inspect(n)}")
+        end
+
+      {_m, _f, a} when a == 2 -> changeset
+      _ ->
       add_error(changeset, :function, "is not an Elixir function")
     end
+
   end
 
   defp ensure_single_parameter_option(changeset) do
